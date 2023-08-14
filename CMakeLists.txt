@@ -229,7 +229,7 @@ install(DIRECTORY
 # cmake package config
 set(babeltrader_cpp_export_dir "${CMAKE_INSTALL_LIBDIR}/cmake/babeltradercpp")
 install(EXPORT babeltradercppTargets
-	FILE babletradercppTargets.cmake
+	FILE babeltradercppTargets.cmake
 	DESTINATION "${babeltrader_cpp_export_dir}")
 
 include(CMakePackageConfigHelpers)
