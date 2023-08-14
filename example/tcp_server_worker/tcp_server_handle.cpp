@@ -1,11 +1,11 @@
 #include "tcp_server_handle.h"
-#include "babeltrader/cpp/session.h"
 #include "tcp_server_peer.h"
 
 TcpServerHandle::TcpServerHandle()
-	: last_timer_trigger_(0)
-	, codec_chain_(nullptr)
+	: codec_chain_(nullptr)
 	, dispatcher_(nullptr)
+	, worker_idx_(0)
+	, last_timer_trigger_(0)
 {
 }
 TcpServerHandle::~TcpServerHandle()
@@ -16,27 +16,10 @@ void TcpServerHandle::OnAddCtx(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 	MUGGLE_UNUSED(ctx);
-	LOG_INFO("TCP Listen handle add context");
-}
-void TcpServerHandle::OnConnect(NetEventLoop *evloop, SocketContext *ctx)
-{
-	MUGGLE_UNUSED(evloop);
 
-	char addr[MUGGLE_SOCKET_ADDR_STRLEN];
-	muggle_socket_remote_addr(ctx->GetSocket(), addr, sizeof(addr), 0);
-
-	LOG_INFO("session connection: addr=%s", addr);
-
-	TcpServerPeer *session = new TcpServerPeer();
-
-	ctx->SetUserData(session);
-
-	session->SetSocketContext(ctx);
-	session->InitBytesBuffer(8 * 1024 * 1024);
-	session->SetCodecChain(codec_chain_);
-	session->UpdateActiveTime(time(NULL));
-	session->SetAddr(addr);
-	session->SetDispatcher(dispatcher_);
+	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	LOG_INFO("worker[%d] add context: addr=%s", worker_idx_,
+			 session->GetAddr());
 
 	ctx_set_.insert(ctx);
 }
@@ -44,31 +27,27 @@ void TcpServerHandle::OnMessage(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	Session *session = (Session *)ctx->GetUserData();
+	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
 	if (!session->HandleMessage()) {
 		LOG_WARNING("failed handle message: addr=%s", session->GetAddr());
 		ctx->Shutdown();
-		return;
 	}
 }
 void TcpServerHandle::OnClose(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	Session *session = (Session *)ctx->GetUserData();
-	if (session) {
-		LOG_INFO("session disconnection: addr=%s", session->GetAddr());
-	}
+	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	LOG_INFO("disconnect: addr=%s", session->GetAddr());
 }
 void TcpServerHandle::OnRelease(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
 	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
-	if (session) {
-		LOG_INFO("session release: addr=%s", session->GetAddr());
-		delete session;
-	}
+	LOG_INFO("session release: addr=%s", session->GetAddr());
+	delete session;
+
 	ctx_set_.erase(ctx);
 }
 void TcpServerHandle::OnTimer(NetEventLoop *evloop)
@@ -98,4 +77,8 @@ void TcpServerHandle::SetCodecChain(CodecChain *codec_chain)
 void TcpServerHandle::SetDispatcher(Dispatcher *dispatcher)
 {
 	dispatcher_ = dispatcher;
+}
+void TcpServerHandle::SetWorkerIdx(int idx)
+{
+	worker_idx_ = idx;
 }

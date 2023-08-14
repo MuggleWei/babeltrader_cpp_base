@@ -67,6 +67,9 @@ void TcpServerPeer::OnLogin(msg_hdr_t *hdr, demo_msg_req_login_t *msg)
 	rsp->req_id = msg->req_id;
 	rsp->login_result = 1;
 	BABELTRADER_CPP_SEND_MSG(rsp);
+
+	// detach from listen evloop
+	Detach();
 }
 void TcpServerPeer::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
 {
@@ -102,4 +105,14 @@ void TcpServerPeer::SetUserID(const char *user_id)
 const std::string &TcpServerPeer::GetUserID()
 {
 	return user_id_;
+}
+
+void TcpServerPeer::Detach()
+{
+	SetDetach(true);
+	SocketContext *ctx = (SocketContext*)GetSocketContex();
+	ctx->RefCntRetain();
+	ctx->SetFlagClose();
+	LOG_INFO("prepare detach session: addr=%s, user_id=%s",
+			GetAddr(), user_id_.c_str());
 }

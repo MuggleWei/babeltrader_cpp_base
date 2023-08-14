@@ -1,8 +1,10 @@
 #include "muggle/cpp/muggle_cpp.h"
 #include "babeltrader/cpp/babeltrader_cpp.h"
 #include "demo_msg.h"
+#include "tcp_listen_handle.h"
 #include "tcp_server_handle.h"
 #include "tcp_server_peer.h"
+#include <thread>
 
 typedef struct sys_args {
 	char host[64];
@@ -91,10 +93,28 @@ void run_tcp_server(const char *host, const char *port)
 	codec_chain.Append(&encoder);
 	codec_chain.Append(&decoder);
 
-	// server handle
-	TcpServerHandle handle;
+	// run workers
+	std::vector<NetEventLoop *> work_evloops;
+	for (int i = 0; i < 2; i++) {
+		TcpServerHandle *handle = new TcpServerHandle();
+		handle->SetCodecChain(&codec_chain);
+		handle->SetDispatcher(&dispatcher);
+		handle->SetWorkerIdx(i);
+
+		NetEventLoop *evloop = new NetEventLoop(128, 0);
+		evloop->SetHandle(handle);
+		evloop->SetTimerInterval(3000);
+		work_evloops.push_back(evloop);
+
+		std::thread th([evloop] { evloop->Run(); });
+		th.detach();
+	}
+
+	// run listen
+	TcpListenHandle handle;
 	handle.SetCodecChain(&codec_chain);
 	handle.SetDispatcher(&dispatcher);
+	handle.SetWorkers(&work_evloops);
 
 	NetEventLoop evloop(128, 0);
 	evloop.SetHandle(&handle);

@@ -97,7 +97,7 @@ bool Session::HandleMessage()
 bool Session::SendMessage(void *data, uint32_t datalen)
 {
 	if (codec_chain_) {
-		return codec_chain_->Encode(this, nullptr, 0);
+		return codec_chain_->Encode(this, data, datalen);
 	}
 	return OnWrite(data, datalen);
 }
