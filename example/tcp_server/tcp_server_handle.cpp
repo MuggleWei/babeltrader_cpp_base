@@ -68,10 +68,6 @@ void TcpServerHandle::OnRelease(NetEventLoop *evloop, SocketContext *ctx)
 		delete session;
 	}
 	ctx_set_.erase(ctx);
-
-	// TODO: testxxx
-	LOG_INFO("bye");
-	evloop->Exit();
 }
 void TcpServerHandle::OnTimer(NetEventLoop *evloop)
 {
