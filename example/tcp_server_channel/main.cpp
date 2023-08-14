@@ -1,8 +1,10 @@
+#include "channel_worker.h"
 #include "muggle/cpp/muggle_cpp.h"
 #include "babeltrader/cpp/babeltrader_cpp.h"
 #include "demo_msg.h"
-#include "tcp_client_handle.h"
-#include "tcp_client_peer.h"
+#include "tcp_server_handle.h"
+#include "tcp_server_peer.h"
+#include <thread>
 
 typedef struct sys_args {
 	char host[64];
@@ -69,15 +71,15 @@ bool parse_sys_args(int argc, char **argv, sys_args_t *args)
 }
 
 #define REGISTER_CALLBACK(msg_id, funcname) \
-	dispatcher.RegisterCallback(msg_id, TcpClientPeer::s_##funcname);
+	dispatcher.RegisterCallback(msg_id, TcpServerPeer::s_##funcname);
 void register_callbacks(Dispatcher &dispatcher)
 {
-	REGISTER_CALLBACK(DEMO_MSG_ID_PONG, OnPong);
-	REGISTER_CALLBACK(DEMO_MSG_ID_RSP_LOGIN, OnRspLogin);
-	REGISTER_CALLBACK(DEMO_MSG_ID_RSP_SUM, OnRspSum);
+	REGISTER_CALLBACK(DEMO_MSG_ID_PING, OnPing);
+	REGISTER_CALLBACK(DEMO_MSG_ID_REQ_LOGIN, OnLogin);
+	REGISTER_CALLBACK(DEMO_MSG_ID_REQ_SUM, OnReqSum);
 }
 
-void run_tcp_client(const char *host, const char *port)
+void run_tcp_server(const char *host, const char *port)
 {
 	// register callbacks
 	Dispatcher dispatcher;
@@ -91,21 +93,31 @@ void run_tcp_client(const char *host, const char *port)
 	codec_chain.Append(&encoder);
 	codec_chain.Append(&decoder);
 
-	// evloop
-	NetEventLoop evloop(8, 0);
+	// channel
+	Channel chan(1024 * 16, 0);
+	ChannelWorker worker;
+	worker.SetChannerl(&chan);
+	worker.SetDispatcher(&dispatcher);
+	std::thread th_worker([&worker] { worker.Run(); });
+	th_worker.detach();
 
-	// client handle
-	TcpClientHandle handle;
-	handle.SetServerAddr(host, port);
-	handle.SetEventLoop(&evloop);
+	// server handle
+	TcpServerHandle handle;
 	handle.SetCodecChain(&codec_chain);
-	handle.SetDispatcher(&dispatcher);
+	handle.SetChannel(&chan);
 
+	NetEventLoop evloop(128, 0);
 	evloop.SetHandle(&handle);
 	evloop.SetTimerInterval(3000);
 
-	handle.Connect();
+	SocketContext *listen_ctx = SocketUtils::TCPListen(host, port, 512);
+	if (listen_ctx == nullptr) {
+		LOG_ERROR("failed listen: host=%s, port=%s", host, port);
+		return;
+	}
+	LOG_INFO("TCP Server Listen: host=%s, port=%s", host, port);
 
+	evloop.AddContext(listen_ctx);
 	evloop.Run();
 }
 
@@ -121,12 +133,10 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	srand(time(NULL));
-
 	sys_args_t args;
 	parse_sys_args(argc, argv, &args);
 
-	run_tcp_client(args.host, args.port);
+	run_tcp_server(args.host, args.port);
 
 	return 0;
 }

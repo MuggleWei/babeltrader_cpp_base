@@ -17,10 +17,15 @@ void TcpClientPeer::SetDispatcher(Dispatcher *dispatcher)
 
 void TcpClientPeer::OnConnection()
 {
+	static const char *users[] = {
+		"foo", "bar", "baz", "bill", "steve", "john"
+	};
+
 	BABELTRADER_CPP_NEW_STACK_MSG(DEMO_MSG_ID_REQ_LOGIN, demo_msg_req_login_t,
 								  req);
 	req->req_id = req_id_++;
-	strncpy(req->user_id, "foo", sizeof(req->user_id) - 1);
+	const char *user = users[rand() % (sizeof(users) / sizeof(users[0]))];
+	strncpy(req->user_id, user, sizeof(req->user_id) - 1);
 	strncpy(req->password, "123456", sizeof(req->password) - 1);
 
 	LOG_INFO("req login: addr=%s, user_id=%s", GetAddr(), req->user_id);
@@ -36,7 +41,7 @@ void TcpClientPeer::OnTimer()
 	req->sec = (uint64_t)ts.tv_sec;
 	req->nsec = (uint32_t)ts.tv_nsec;
 
-	LOG_INFO("send req ping: addr=%s, sec=%llu, nsec=%09lu", GetAddr(),
+	LOG_TRACE("send req ping: addr=%s, sec=%llu, nsec=%09lu", GetAddr(),
 			 (unsigned long long)req->sec, (unsigned long)req->nsec);
 
 	BABELTRADER_CPP_SEND_MSG(req);
@@ -56,7 +61,7 @@ void TcpClientPeer::OnPong(msg_hdr_t *hdr, demo_msg_pong_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
-	LOG_INFO("recv rsp pong: addr=%s, sec=%llu, nsec=%09lu", GetAddr(),
+	LOG_TRACE("recv rsp pong: addr=%s, sec=%llu, nsec=%09lu", GetAddr(),
 			 (unsigned long long)msg->sec, (unsigned long)msg->nsec);
 	UpdateActiveTime(time(NULL));
 }

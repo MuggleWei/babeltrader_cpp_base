@@ -1,5 +1,6 @@
 #include "tcp_server_peer.h"
 #include "demo_msg.h"
+#include "chan_msg.h"
 
 #define CHECK_AUTH                          \
 	if (!is_logined_) {                     \
@@ -16,22 +17,32 @@
 	}
 
 TcpServerPeer::TcpServerPeer()
-	: dispatcher_(nullptr)
-	, is_logined_(false)
+	: is_logined_(false)
+	, chan_(nullptr)
 {
 }
 TcpServerPeer::~TcpServerPeer()
 {
 }
 
-void TcpServerPeer::SetDispatcher(Dispatcher *dispatcher)
+void TcpServerPeer::SetChannel(Channel *chan)
 {
-	dispatcher_ = dispatcher;
+	chan_ = chan;
 }
 
 bool TcpServerPeer::OnRead(void *data, uint32_t datalen)
 {
-	dispatcher_->Dispatch(this, data, datalen);
+	chan_msg_t *chan_msg = (chan_msg_t *)malloc(sizeof(chan_msg_t));
+	memset(chan_msg, 0, sizeof(*chan_msg));
+	chan_msg->ctx = this->GetSocketContex();
+	if (datalen > 0) {
+		chan_msg->data = malloc(datalen);
+		memcpy(chan_msg->data, data, datalen);
+		chan_msg->datalen = datalen;
+	}
+
+	chan_->Write(chan_msg);
+
 	return true;
 }
 
@@ -40,7 +51,7 @@ void TcpServerPeer::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
 	MUGGLE_UNUSED(hdr);
 
 	LOG_TRACE("recv req ping: addr=%s, sec=%llu, nsec=%09lu", GetAddr(),
-			 (unsigned long long)msg->sec, (unsigned long)msg->nsec);
+			  (unsigned long long)msg->sec, (unsigned long)msg->nsec);
 	UpdateActiveTime(time(NULL));
 
 	BABELTRADER_CPP_NEW_STACK_MSG(DEMO_MSG_ID_PONG, demo_msg_pong_t, rsp);
@@ -81,7 +92,7 @@ void TcpServerPeer::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
 	}
 
 	LOG_DEBUG("recv req sum: addr=%s, user_id=%s, req_id=%lu", GetAddr(),
-			 user_id_.c_str(), (unsigned long)msg->req_id);
+			  user_id_.c_str(), (unsigned long)msg->req_id);
 
 	int32_t sum = 0;
 	int32_t *arr = (int32_t *)(msg + 1);

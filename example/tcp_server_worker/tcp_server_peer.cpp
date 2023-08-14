@@ -39,7 +39,7 @@ void TcpServerPeer::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
-	LOG_INFO("recv req ping: addr=%s, sec=%llu, nsec=%09lu", GetAddr(),
+	LOG_TRACE("recv req ping: addr=%s, sec=%llu, nsec=%09lu", GetAddr(),
 			 (unsigned long long)msg->sec, (unsigned long)msg->nsec);
 	UpdateActiveTime(time(NULL));
 
@@ -83,7 +83,7 @@ void TcpServerPeer::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
 		return;
 	}
 
-	LOG_INFO("recv req sum: addr=%s, user_id=%s, req_id=%lu", GetAddr(),
+	LOG_DEBUG("recv req sum: addr=%s, user_id=%s, req_id=%lu", GetAddr(),
 			 user_id_.c_str(), (unsigned long)msg->req_id);
 
 	int32_t sum = 0;
