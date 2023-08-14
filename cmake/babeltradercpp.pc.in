@@ -1,9 +1,9 @@
 libdir=@CMAKE_INSTALL_FULL_LIBDIR@
 includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
-Name: hpkg
-Description: Happy Package. A c/c++ package manager.
-Version: @HPKG_VERSION@
-URL: https://github.com/mugglewei/hpkg
-Libs: -L${libdir} -lhpkgcli
+Name: babeltrader
+Description: babeltrader cpp base library
+Version: @BABELTRADER_CPP_VERSION@
+URL: https://github.com/mugglewei/babeltrader_cpp_base
+Libs: -L${libdir} -lbabeltradercpp
 Cflags: -I${includedir}
