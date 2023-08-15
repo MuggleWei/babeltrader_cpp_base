@@ -11,6 +11,7 @@
 #ifndef BABELTRADER_CPP_MACRO_H_
 #define BABELTRADER_CPP_MACRO_H_
 
+#include "muggle/c/base/macro.h"
 #include "babeltrader/cpp/config.h"
 
 #if MUGGLE_PLATFORM_WINDOWS && defined(BABELTRADER_CPP_USE_DLL)
