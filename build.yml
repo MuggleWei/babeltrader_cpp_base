@@ -1,8 +1,8 @@
 name: babeltradercpp
 variables:
   - build_type: release
-  - babeltradercpp_tag: v1.1.0
-  - mugglecpp_tag: v1.2.0
+  - babeltradercpp_tag: v1.1.1
+  - mugglecpp_tag: v1.2.1
 source:
   maintainer: mugglewei
   name: babeltradercpp
