@@ -68,8 +68,8 @@ message("# BABELTRADER_CPP_INSTALL_EXAMPLE: ${BABELTRADER_CPP_INSTALL_EXAMPLE}")
 # deps
 ################################
 
-set(DEPS_MUGGLEC_VER "1.2.5" CACHE STRING "mugglec version")
-set(DEPS_MUGGLECPP_VER "1.0.7" CACHE STRING "mugglecpp version")
+set(DEPS_MUGGLEC_VER "1.2.6" CACHE STRING "mugglec version")
+set(DEPS_MUGGLECPP_VER "1.2.0" CACHE STRING "mugglecpp version")
 
 message("# find package mugglec")
 find_package(mugglec ${DEPS_MUGGLEC_VER} REQUIRED)
