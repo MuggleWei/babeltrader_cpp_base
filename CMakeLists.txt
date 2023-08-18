@@ -68,11 +68,8 @@ message("# BABELTRADER_CPP_INSTALL_EXAMPLE: ${BABELTRADER_CPP_INSTALL_EXAMPLE}")
 # deps
 ################################
 
-set(DEPS_MUGGLEC_VER "1.2.6" CACHE STRING "mugglec version")
-set(DEPS_MUGGLECPP_VER "1.2.0" CACHE STRING "mugglecpp version")
-
 message("# find package mugglec")
-find_package(mugglec ${DEPS_MUGGLEC_VER} REQUIRED)
+find_package(mugglec REQUIRED)
 if (NOT mugglec_FOUND)
 	message(FATAL_ERROR "failed found mugglec")
 else()
@@ -80,11 +77,21 @@ else()
 endif()
 
 message("# find package mugglecpp")
-find_package(mugglecpp ${DEPS_MUGGLECPP_VER} REQUIRED)
+find_package(mugglecpp REQUIRED)
 if (NOT mugglecpp_FOUND)
 	message(FATAL_ERROR "failed found mugglecpp")
 else()
 	message("Find mugglecpp package: ${mugglecpp_DIR}")
+endif()
+
+if (BUILD_TESTING)
+	message("# find package GTest")
+	find_package(GTest REQUIRED)
+	if (NOT GTest_FOUND)
+		message(FATAL_ERROR "failed found GTest")
+	else()
+		message("Find GTest package: ${GTest_DIR}")
+	endif()
 endif()
 
 ################################
@@ -141,61 +148,6 @@ set_target_properties(babeltradercpp PROPERTIES
 	DEBUG_POSTFIX d
 	VERSION ${BABELTRADER_CPP_VERSION}
 	SOVERSION ${BABELTRADER_CPP_VERSION_MAJOR})
-
-################################
-# example
-################################
-
-function(add_example name folder)
-	message("add example ${name} ${folder}")
-	
-	set(name example_${name})
-
-	file(GLOB_RECURSE tmp_h ${folder}/*.h)
-	file(GLOB_RECURSE tmp_c ${folder}/*.c)
-	file(GLOB_RECURSE tmp_cpp ${folder}/*.cpp)
-	file(GLOB_RECURSE tmp_cc ${folder}/*.cc)
-
-	if (WIN32)
-		add_executable(${name} ${tmp_h} ${tmp_c} ${tmp_cpp} ${tmp_cc})
-		set_target_properties(${name}
-			PROPERTIES
-			FOLDER "example"
-			VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
-		)
-	else()
-		add_executable(${name} ${tmp_c} ${tmp_cpp} ${tmp_cc})
-		if (APPLE)
-			set_target_properties(${name}
-				PROPERTIES
-				INSTALL_RPATH "@executable_path/../lib")
-		elseif (UNIX)
-			set_target_properties(${name}
-				PROPERTIES
-				INSTALL_RPATH "\$ORIGIN/../lib"
-				)
-		endif()
-	endif(WIN32)
-	add_dependencies(${name} babeltradercpp)
-	target_include_directories(${name} PUBLIC
-		${CMAKE_CURRENT_LIST_DIR}/example_include)
-	target_link_libraries(${name} mugglecpp babeltradercpp)
-	target_compile_definitions(${name} PUBLIC MUGGLE_HOLD_LOG_MACRO)
-
-	if (BABELTRADER_CPP_INSTALL_EXAMPLE)
-		install(TARGETS ${name} RUNTIME DESTINATION bin)
-	endif()
-endfunction()
-
-if (BABELTRADER_CPP_BUILD_EXAMPLE)
-	set(example_root_dir ${CMAKE_CURRENT_LIST_DIR}/example)
-	FILE(GLOB subdirs RELATIVE ${example_root_dir} ${example_root_dir}/*)
-	FOREACH(subdir ${subdirs})
-		IF(IS_DIRECTORY ${example_root_dir}/${subdir})
-			add_example(${subdir} ${example_root_dir}/${subdir})
-		ENDIF()
-	ENDFOREACH()
-endif()
 
 ################################
 # install
@@ -264,3 +216,133 @@ set(CPACK_PACKAGE_VERSION_MINOR ${BABELTRADER_CPP_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${BABELTRADER_CPP_VERSION_PATCH})
 set(CPACK_SOURCE_GENERATOR "TGZ")
 include(CPack)
+
+################################
+# example
+################################
+
+function(add_example name folder)
+	message("add example ${name} ${folder}")
+	
+	set(name example_${name})
+
+	file(GLOB_RECURSE tmp_h ${folder}/*.h)
+	file(GLOB_RECURSE tmp_c ${folder}/*.c)
+	file(GLOB_RECURSE tmp_cpp ${folder}/*.cpp)
+	file(GLOB_RECURSE tmp_cc ${folder}/*.cc)
+
+	if (WIN32)
+		add_executable(${name} ${tmp_h} ${tmp_c} ${tmp_cpp} ${tmp_cc})
+		set_target_properties(${name}
+			PROPERTIES
+			FOLDER "example"
+			VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+		)
+	else()
+		add_executable(${name} ${tmp_c} ${tmp_cpp} ${tmp_cc})
+		if (APPLE)
+			set_target_properties(${name}
+				PROPERTIES
+				INSTALL_RPATH "@executable_path/../lib")
+		elseif (UNIX)
+			set_target_properties(${name}
+				PROPERTIES
+				INSTALL_RPATH "\$ORIGIN/../lib"
+				)
+		endif()
+	endif(WIN32)
+	add_dependencies(${name} babeltradercpp)
+	target_include_directories(${name} PUBLIC
+		${CMAKE_CURRENT_LIST_DIR}/example_include)
+	target_link_libraries(${name} mugglecpp babeltradercpp)
+	target_compile_definitions(${name} PUBLIC MUGGLE_HOLD_LOG_MACRO)
+
+	if (BABELTRADER_CPP_INSTALL_EXAMPLE)
+		install(TARGETS ${name} RUNTIME DESTINATION bin)
+	endif()
+endfunction()
+
+if (BABELTRADER_CPP_BUILD_EXAMPLE)
+	set(example_root_dir ${CMAKE_CURRENT_LIST_DIR}/example)
+	FILE(GLOB subdirs RELATIVE ${example_root_dir} ${example_root_dir}/*)
+	FOREACH(subdir ${subdirs})
+		IF(IS_DIRECTORY ${example_root_dir}/${subdir})
+			add_example(${subdir} ${example_root_dir}/${subdir})
+		ENDIF()
+	ENDFOREACH()
+endif()
+
+################################
+# mock
+################################
+set(mock_dir ${CMAKE_CURRENT_LIST_DIR}/mock)
+FILE(GLOB_RECURSE babeltradercpp_mock_cpp "${mock_dir}/*.cpp")
+FILE(GLOB_RECURSE babeltradercpp_mock_h "${mock_dir}/*.h")
+set(mock babeltradercpp_mock)
+add_library(${mock} ${BABELTRADER_CPP_LIB_TYPE}
+	${babeltradercpp_mock_cpp}
+	${babeltradercpp_mock_h})
+target_link_libraries(${mock} mugglecpp babeltradercpp)
+target_include_directories(${mock} PUBLIC "${mock_dir}")
+target_compile_definitions(${mock}
+	PRIVATE BABELTRADER_CPP_MOCK_EXPORTS MUGGLE_HOLD_LOG_MACRO)
+set_target_properties(${mock} PROPERTIES
+	DEBUG_POSTFIX d
+	VERSION ${BABELTRADER_CPP_VERSION}
+	SOVERSION ${BABELTRADER_CPP_VERSION_MAJOR})
+
+################################
+# test
+################################
+
+function(add_unittest name folder)
+	message("add test ${name} ${folder}")
+	
+	set(name test_${name})
+
+	file(GLOB_RECURSE tmp_h ${folder}/*.h)
+	file(GLOB_RECURSE tmp_c ${folder}/*.c)
+	file(GLOB_RECURSE tmp_cpp ${folder}/*.cpp)
+	file(GLOB_RECURSE tmp_cc ${folder}/*.cc)
+
+	if (WIN32)
+		add_executable(${name} ${tmp_h} ${tmp_c} ${tmp_cpp} ${tmp_cc})
+		set_target_properties(${name}
+			PROPERTIES
+			FOLDER "example"
+			VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+		)
+	else()
+		add_executable(${name} ${tmp_c} ${tmp_cpp} ${tmp_cc})
+		if (APPLE)
+			set_target_properties(${name}
+				PROPERTIES
+				INSTALL_RPATH "@executable_path/../lib")
+		elseif (UNIX)
+			set_target_properties(${name}
+				PROPERTIES
+				INSTALL_RPATH "\$ORIGIN/../lib"
+				)
+		endif()
+	endif(WIN32)
+	add_dependencies(${name} babeltradercpp)
+	target_include_directories(${name} PUBLIC
+		${CMAKE_CURRENT_LIST_DIR}/example_include
+		${CMAKE_CURRENT_LIST_DIR}/mock)
+	target_link_libraries(${name} mugglecpp babeltradercpp ${mock} ${GTEST_BOTH_LIBRARIES})
+	target_compile_definitions(${name} PUBLIC MUGGLE_HOLD_LOG_MACRO)
+
+	add_test(NAME ${name} COMMAND ${name})
+endfunction()
+
+if (BUILD_TESTING)
+	enable_testing()
+
+	set(test_root_dir ${CMAKE_CURRENT_LIST_DIR}/test)
+	FILE(GLOB subdirs RELATIVE ${test_root_dir} ${test_root_dir}/*)
+	FOREACH(subdir ${subdirs})
+		IF(IS_DIRECTORY ${test_root_dir}/${subdir})
+			add_unittest(${subdir} ${test_root_dir}/${subdir})
+		ENDIF()
+	ENDFOREACH()
+endif()
