@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "babeltrader/cpp/mock.h"
 #include "demo_msg.h"
+#include "muggle/c/os/endian.h"
 
 USING_NS_BABELTRADER;
 
@@ -29,6 +30,8 @@ public:
 	{
 		ASSERT_EQ(*(uint32_t *)hdr->magic,
 				  *(uint32_t *)BABELTRADER_CPP_MSG_HDR_MAGIC_WORD);
+		ASSERT_EQ(hdr->flags[BABELTRADER_CPP_MSG_HDR_FLAG_ENDIAN],
+				  MUGGLE_ENDIANNESS);
 		ASSERT_EQ(hdr->flags[BABELTRADER_CPP_MSG_HDR_FLAG_VER], 1);
 		ASSERT_EQ(hdr->msg_id, msg_id);
 		ASSERT_EQ(hdr->payload_len, payload_len);
@@ -50,6 +53,7 @@ protected:
 
 TEST_F(TestCodec, CodecPing)
 {
+	// write
 	NEW_STACK_MSG(DEMO_MSG_ID_PING, demo_msg_ping_t, req);
 	req->sec = 5;
 	req->nsec = 6;
@@ -65,16 +69,18 @@ TEST_F(TestCodec, CodecPing)
 	bool ret = SEND_MSG(req);
 	ASSERT_TRUE(ret);
 
+	// read
 	ret = decoder_.ReadBytes(&read_session_);
 	ASSERT_TRUE(ret);
 
 	read_session_.cb_read = [&](void *data, uint32_t datalen) {
 		CheckHead((msg_hdr_t *)data, DEMO_MSG_ID_PING,
 				  datalen - sizeof(msg_hdr_t));
-		demo_msg_ping_t *msg = (demo_msg_ping_t*)((msg_hdr_t *)data + 1);
+		demo_msg_ping_t *msg = (demo_msg_ping_t *)((msg_hdr_t *)data + 1);
 		ASSERT_EQ(msg->sec, req->sec);
 		ASSERT_EQ(msg->nsec, req->nsec);
 	};
+
 	ret = codec_chain_.Decode(&read_session_, NULL, 0);
 	ASSERT_TRUE(ret);
 }

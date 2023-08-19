@@ -6,11 +6,7 @@
 NS_BABELTRADER_BEGIN
 
 static const char *s_magic = BABELTRADER_CPP_MSG_HDR_MAGIC_WORD;
-static const int16_t s_endianess_val = 1;
-static const char s_endianess = (char)(*(char *)&s_endianess_val == 1 ?
-										   MUGGLE_LITTLE_ENDIAN :
-										   MUGGLE_BIG_ENDIAN);
-static const uint8_t s_protocol_ver = 1;
+static const uint8_t s_protocol_ver = BABELTRADER_CPP_PROTOCOL_VERSION;
 
 BytesToMsgDecoder::BytesToMsgDecoder()
 	: Decoder()
@@ -50,13 +46,14 @@ bool BytesToMsgDecoder::Decode(Session *session, void *data, uint32_t datalen)
 
 		// check endianness
 		if (msg_header.flags[BABELTRADER_CPP_MSG_HDR_FLAG_ENDIAN] !=
-			s_endianess) {
+			MUGGLE_ENDIANNESS) {
 			LOG_ERROR("invalid endianness: addr=%s", session->GetAddr());
 			return false;
 		}
 
 		// check version
-		if (msg_header.flags[BABELTRADER_CPP_MSG_HDR_FLAG_VER] != s_protocol_ver) {
+		if (msg_header.flags[BABELTRADER_CPP_MSG_HDR_FLAG_VER] !=
+			s_protocol_ver) {
 			LOG_ERROR("invalid version: addr=%s", session->GetAddr());
 			return false;
 		}
