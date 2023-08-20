@@ -1,4 +1,4 @@
-#include "tcp_server_peer.h"
+#include "tcp_server_session.h"
 #include "demo_msg.h"
 #include "chan_msg.h"
 
@@ -16,21 +16,21 @@
 		return;                                                              \
 	}
 
-TcpServerPeer::TcpServerPeer()
+TcpServerSession::TcpServerSession()
 	: is_logined_(false)
 	, chan_(nullptr)
 {
 }
-TcpServerPeer::~TcpServerPeer()
+TcpServerSession::~TcpServerSession()
 {
 }
 
-void TcpServerPeer::SetChannel(Channel *chan)
+void TcpServerSession::SetChannel(Channel *chan)
 {
 	chan_ = chan;
 }
 
-bool TcpServerPeer::OnRead(void *data, uint32_t datalen)
+bool TcpServerSession::OnRead(void *data, uint32_t datalen)
 {
 	chan_msg_t *chan_msg = (chan_msg_t *)malloc(sizeof(chan_msg_t));
 	memset(chan_msg, 0, sizeof(*chan_msg));
@@ -46,7 +46,7 @@ bool TcpServerPeer::OnRead(void *data, uint32_t datalen)
 	return true;
 }
 
-void TcpServerPeer::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
+void TcpServerSession::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -59,7 +59,7 @@ void TcpServerPeer::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
 	rsp->nsec = (uint32_t)msg->nsec;
 	BABELTRADER_CPP_SEND_MSG(rsp);
 }
-void TcpServerPeer::OnLogin(msg_hdr_t *hdr, demo_msg_req_login_t *msg)
+void TcpServerSession::OnLogin(msg_hdr_t *hdr, demo_msg_req_login_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -79,7 +79,7 @@ void TcpServerPeer::OnLogin(msg_hdr_t *hdr, demo_msg_req_login_t *msg)
 	rsp->login_result = 1;
 	BABELTRADER_CPP_SEND_MSG(rsp);
 }
-void TcpServerPeer::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
+void TcpServerSession::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -106,11 +106,11 @@ void TcpServerPeer::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
 	BABELTRADER_CPP_SEND_MSG(rsp);
 }
 
-void TcpServerPeer::SetUserID(const char *user_id)
+void TcpServerSession::SetUserID(const char *user_id)
 {
 	user_id_ = user_id;
 }
-const std::string &TcpServerPeer::GetUserID()
+const std::string &TcpServerSession::GetUserID()
 {
 	return user_id_;
 }

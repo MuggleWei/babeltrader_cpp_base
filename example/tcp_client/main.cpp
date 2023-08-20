@@ -1,8 +1,8 @@
 #include "muggle/cpp/muggle_cpp.h"
 #include "babeltrader/cpp/babeltrader_cpp.h"
 #include "demo_msg.h"
+#include "tcp_client_session.h"
 #include "tcp_client_handle.h"
-#include "tcp_client_peer.h"
 
 typedef struct sys_args {
 	char host[64];
@@ -69,7 +69,7 @@ bool parse_sys_args(int argc, char **argv, sys_args_t *args)
 }
 
 #define REGISTER_CALLBACK(msg_id, funcname) \
-	dispatcher.RegisterCallback(msg_id, TcpClientPeer::s_##funcname);
+	dispatcher.RegisterCallback(msg_id, TcpClientSession::s_##funcname);
 void register_callbacks(Dispatcher &dispatcher)
 {
 	REGISTER_CALLBACK(DEMO_MSG_ID_PONG, OnPong);

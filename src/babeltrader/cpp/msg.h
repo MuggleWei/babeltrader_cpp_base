@@ -26,6 +26,8 @@ NS_BABELTRADER_BEGIN
 #define BABELTRADER_CPP_MSG_HDR_FLAG_REVERSED1 2
 #define BABELTRADER_CPP_MSG_HDR_FLAG_REVERSED2 3
 
+#define BABELTRADER_CPP_PROTOCOL_VERSION 1
+
 typedef struct msg_hdr {
 	char magic[4]; //!< magic word
 	char flags[4]; //!< flags
@@ -33,12 +35,12 @@ typedef struct msg_hdr {
 	uint32_t payload_len; //!< payload length (not include head)
 } msg_hdr_t;
 
-#define BABELTRADER_CPP_NEW_STACK_MSG(msgid, msgtype, var) \
+#define BABELTRADER_CPP_NEW_STACK_MSG(msgid, msgtype, var)           \
 	char msg_placeholder_##var[sizeof(msg_hdr_t) + sizeof(msgtype)]; \
 	memset(msg_placeholder_##var, 0, sizeof(msg_placeholder_##var)); \
-	msg_hdr_t *hdr_##var = (msg_hdr_t*)msg_placeholder_##var; \
-	hdr_##var->msg_id = msgid; \
-	msgtype *var = (msgtype*)(hdr_##var + 1);
+	msg_hdr_t *hdr_##var = (msg_hdr_t *)msg_placeholder_##var;       \
+	hdr_##var->msg_id = msgid;                                       \
+	msgtype *var = (msgtype *)(hdr_##var + 1);
 
 #define BABELTRADER_CPP_SEND_MSG(var) \
 	SendMessage(hdr_##var, sizeof(msg_hdr_t) + sizeof(*var));

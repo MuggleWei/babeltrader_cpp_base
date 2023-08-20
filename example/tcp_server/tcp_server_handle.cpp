@@ -1,6 +1,6 @@
 #include "tcp_server_handle.h"
 #include "babeltrader/cpp/session.h"
-#include "tcp_server_peer.h"
+#include "tcp_server_session.h"
 
 TcpServerHandle::TcpServerHandle()
 	: last_timer_trigger_(0)
@@ -27,7 +27,7 @@ void TcpServerHandle::OnConnect(NetEventLoop *evloop, SocketContext *ctx)
 
 	LOG_INFO("session connection: addr=%s", addr);
 
-	TcpServerPeer *session = new TcpServerPeer();
+	TcpServerSession *session = new TcpServerSession();
 
 	ctx->SetUserData(session);
 
@@ -64,7 +64,7 @@ void TcpServerHandle::OnRelease(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 	if (session) {
 		LOG_INFO("session release: addr=%s", session->GetAddr());
 		delete session;

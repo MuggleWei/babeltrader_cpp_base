@@ -1,5 +1,5 @@
 #include "tcp_client_handle.h"
-#include "tcp_client_peer.h"
+#include "tcp_client_session.h"
 #include <thread>
 
 TcpClientHandle::TcpClientHandle()
@@ -23,7 +23,7 @@ void TcpClientHandle::OnAddCtx(NetEventLoop *evloop, SocketContext *ctx)
 
 	LOG_INFO("success connect to %s", addr);
 
-	TcpClientPeer *session = new TcpClientPeer();
+	TcpClientSession *session = new TcpClientSession();
 	ctx->SetUserData(session);
 
 	session->SetSocketContext(ctx);
@@ -40,7 +40,7 @@ void TcpClientHandle::OnMessage(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpClientPeer *session = (TcpClientPeer *)ctx->GetUserData();
+	TcpClientSession *session = (TcpClientSession *)ctx->GetUserData();
 	if (!session->HandleMessage()) {
 		LOG_WARNING("failed handle message: addr=%s", session->GetAddr());
 		ctx->Shutdown();
@@ -60,7 +60,7 @@ void TcpClientHandle::OnRelease(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpClientPeer *session = (TcpClientPeer *)ctx->GetUserData();
+	TcpClientSession *session = (TcpClientSession *)ctx->GetUserData();
 	if (session) {
 		LOG_INFO("release %s", session->GetAddr());
 		delete session;

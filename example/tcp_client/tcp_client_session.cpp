@@ -1,21 +1,21 @@
-#include "tcp_client_peer.h"
+#include "tcp_client_session.h"
 
-TcpClientPeer::TcpClientPeer()
+TcpClientSession::TcpClientSession()
 	: dispatcher_(nullptr)
 	, req_id_(0)
 	, is_logined_(false)
 {
 }
-TcpClientPeer::~TcpClientPeer()
+TcpClientSession::~TcpClientSession()
 {
 }
 
-void TcpClientPeer::SetDispatcher(Dispatcher *dispatcher)
+void TcpClientSession::SetDispatcher(Dispatcher *dispatcher)
 {
 	dispatcher_ = dispatcher;
 }
 
-void TcpClientPeer::OnConnection()
+void TcpClientSession::OnConnection()
 {
 	static const char *users[] = {
 		"foo", "bar", "baz", "bill", "steve", "john"
@@ -32,7 +32,7 @@ void TcpClientPeer::OnConnection()
 
 	BABELTRADER_CPP_SEND_MSG(req);
 }
-void TcpClientPeer::OnTimer()
+void TcpClientSession::OnTimer()
 {
 	struct timespec ts;
 	timespec_get(&ts, TIME_UTC);
@@ -51,13 +51,13 @@ void TcpClientPeer::OnTimer()
 	}
 }
 
-bool TcpClientPeer::OnRead(void *data, uint32_t datalen)
+bool TcpClientSession::OnRead(void *data, uint32_t datalen)
 {
 	dispatcher_->Dispatch(this, data, datalen);
 	return true;
 }
 
-void TcpClientPeer::OnPong(msg_hdr_t *hdr, demo_msg_pong_t *msg)
+void TcpClientSession::OnPong(msg_hdr_t *hdr, demo_msg_pong_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -65,7 +65,7 @@ void TcpClientPeer::OnPong(msg_hdr_t *hdr, demo_msg_pong_t *msg)
 			 (unsigned long long)msg->sec, (unsigned long)msg->nsec);
 	UpdateActiveTime(time(NULL));
 }
-void TcpClientPeer::OnRspLogin(msg_hdr_t *hdr, demo_msg_rsp_login_t *msg)
+void TcpClientSession::OnRspLogin(msg_hdr_t *hdr, demo_msg_rsp_login_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -78,7 +78,7 @@ void TcpClientPeer::OnRspLogin(msg_hdr_t *hdr, demo_msg_rsp_login_t *msg)
 
 	LOG_INFO("recv rsp login success");
 }
-void TcpClientPeer::OnRspSum(msg_hdr_t *hdr, demo_msg_rsp_sum_t *msg)
+void TcpClientSession::OnRspSum(msg_hdr_t *hdr, demo_msg_rsp_sum_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -87,7 +87,7 @@ void TcpClientPeer::OnRspSum(msg_hdr_t *hdr, demo_msg_rsp_sum_t *msg)
 			 (unsigned long)msg->req_id, (long)msg->sum);
 }
 
-void TcpClientPeer::RequestSum()
+void TcpClientSession::RequestSum()
 {
 	const static uint32_t max_sum_len = 10;
 	uint32_t cnt = ((uint32_t)rand()) % max_sum_len + 1;

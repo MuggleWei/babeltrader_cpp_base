@@ -1,6 +1,6 @@
 #include "channel_worker.h"
 #include "chan_msg.h"
-#include "tcp_server_peer.h"
+#include "tcp_server_session.h"
 
 ChannelWorker::ChannelWorker()
 	: chan_(nullptr)
@@ -36,7 +36,7 @@ void ChannelWorker::Run()
 		case CHAN_MSG_DISCONNECT: {
 			SocketContext *ctx = msg->ctx;
 			if (ctx->RefCntRelease() == 0) {
-				TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+				TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 				if (session) {
 					LOG_INFO("session release: addr=%s", session->GetAddr());
 					delete session;

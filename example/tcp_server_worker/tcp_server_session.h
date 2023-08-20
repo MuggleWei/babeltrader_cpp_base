@@ -1,5 +1,5 @@
-#ifndef TCP_CLIENT_PEER_H_
-#define TCP_CLIENT_PEER_H_
+#ifndef TCP_SERVER_PEER_H_
+#define TCP_SERVER_PEER_H_
 
 #include "muggle/cpp/muggle_cpp.h"
 #include "babeltrader/cpp/babeltrader_cpp.h"
@@ -11,36 +11,35 @@ USING_NS_BABELTRADER;
 #define CALLBACK_DECALRE(funcname, msg_type)                              \
 	static void s_##funcname(Session *session, msg_hdr_t *hdr, void *msg) \
 	{                                                                     \
-		TcpClientPeer *peer = (TcpClientPeer *)session;                   \
-		peer->funcname(hdr, (msg_type *)msg);                             \
+		TcpServerSession *server_session = (TcpServerSession *)session;   \
+		server_session->funcname(hdr, (msg_type *)msg);                   \
 	}                                                                     \
 	void funcname(msg_hdr_t *hdr, msg_type *msg)
 
-class TcpClientPeer : public Session
-{
+class TcpServerSession : public Session {
 public:
-	TcpClientPeer();
-	virtual ~TcpClientPeer();
+	TcpServerSession();
+	virtual ~TcpServerSession();
 
 	void SetDispatcher(Dispatcher *dispatcher);
 
-	void OnConnection();
-	void OnTimer();
-
 	virtual bool OnRead(void *data, uint32_t datalen) override;
 
-	CALLBACK_DECALRE(OnPong, demo_msg_pong_t);
-	CALLBACK_DECALRE(OnRspLogin, demo_msg_rsp_login_t);
-	CALLBACK_DECALRE(OnRspSum, demo_msg_rsp_sum_t);
+	CALLBACK_DECALRE(OnPing, demo_msg_ping_t);
+	CALLBACK_DECALRE(OnLogin, demo_msg_req_login_t);
+	CALLBACK_DECALRE(OnReqSum, demo_msg_req_sum_t);
+
+	void SetUserID(const char *user_id);
+	const std::string &GetUserID();
 
 private:
-	void RequestSum();
+	void Detach();
 
 private:
 	Dispatcher *dispatcher_;
 
-	uint32_t req_id_;
+	std::string user_id_;
 	bool is_logined_;
 };
 
-#endif // !TCP_CLIENT_PEER_H_
+#endif // !TCP_SERVER_PEER_H_
