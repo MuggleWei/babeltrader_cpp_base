@@ -1,5 +1,5 @@
 #include "tcp_server_handle.h"
-#include "tcp_server_peer.h"
+#include "tcp_server_session.h"
 
 TcpServerHandle::TcpServerHandle()
 	: codec_chain_(nullptr)
@@ -17,7 +17,7 @@ void TcpServerHandle::OnAddCtx(NetEventLoop *evloop, SocketContext *ctx)
 	MUGGLE_UNUSED(evloop);
 	MUGGLE_UNUSED(ctx);
 
-	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 	LOG_INFO("worker[%d] add context: addr=%s", worker_idx_,
 			 session->GetAddr());
 
@@ -27,7 +27,7 @@ void TcpServerHandle::OnMessage(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 	if (!session->HandleMessage()) {
 		LOG_WARNING("failed handle message: addr=%s", session->GetAddr());
 		ctx->Shutdown();
@@ -37,14 +37,14 @@ void TcpServerHandle::OnClose(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 	LOG_INFO("disconnect: addr=%s", session->GetAddr());
 }
 void TcpServerHandle::OnRelease(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 	LOG_INFO("session release: addr=%s", session->GetAddr());
 	delete session;
 

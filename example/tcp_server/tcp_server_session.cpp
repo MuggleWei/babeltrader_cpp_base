@@ -1,4 +1,4 @@
-#include "tcp_server_peer.h"
+#include "tcp_server_session.h"
 #include "demo_msg.h"
 
 #define CHECK_AUTH                          \
@@ -15,27 +15,27 @@
 		return;                                                              \
 	}
 
-TcpServerPeer::TcpServerPeer()
+TcpServerSession::TcpServerSession()
 	: dispatcher_(nullptr)
 	, is_logined_(false)
 {
 }
-TcpServerPeer::~TcpServerPeer()
+TcpServerSession::~TcpServerSession()
 {
 }
 
-void TcpServerPeer::SetDispatcher(Dispatcher *dispatcher)
+void TcpServerSession::SetDispatcher(Dispatcher *dispatcher)
 {
 	dispatcher_ = dispatcher;
 }
 
-bool TcpServerPeer::OnRead(void *data, uint32_t datalen)
+bool TcpServerSession::OnRead(void *data, uint32_t datalen)
 {
 	dispatcher_->Dispatch(this, data, datalen);
 	return true;
 }
 
-void TcpServerPeer::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
+void TcpServerSession::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -48,7 +48,7 @@ void TcpServerPeer::OnPing(msg_hdr_t *hdr, demo_msg_ping_t *msg)
 	rsp->nsec = (uint32_t)msg->nsec;
 	BABELTRADER_CPP_SEND_MSG(rsp);
 }
-void TcpServerPeer::OnLogin(msg_hdr_t *hdr, demo_msg_req_login_t *msg)
+void TcpServerSession::OnLogin(msg_hdr_t *hdr, demo_msg_req_login_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -67,11 +67,8 @@ void TcpServerPeer::OnLogin(msg_hdr_t *hdr, demo_msg_req_login_t *msg)
 	rsp->req_id = msg->req_id;
 	rsp->login_result = 1;
 	BABELTRADER_CPP_SEND_MSG(rsp);
-
-	// detach from listen evloop
-	Detach();
 }
-void TcpServerPeer::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
+void TcpServerSession::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
 {
 	MUGGLE_UNUSED(hdr);
 
@@ -98,21 +95,11 @@ void TcpServerPeer::OnReqSum(msg_hdr_t *hdr, demo_msg_req_sum_t *msg)
 	BABELTRADER_CPP_SEND_MSG(rsp);
 }
 
-void TcpServerPeer::SetUserID(const char *user_id)
+void TcpServerSession::SetUserID(const char *user_id)
 {
 	user_id_ = user_id;
 }
-const std::string &TcpServerPeer::GetUserID()
+const std::string &TcpServerSession::GetUserID()
 {
 	return user_id_;
-}
-
-void TcpServerPeer::Detach()
-{
-	SetDetach(true);
-	SocketContext *ctx = (SocketContext*)GetSocketContex();
-	ctx->RefCntRetain();
-	ctx->SetFlagClose();
-	LOG_INFO("prepare detach session: addr=%s, user_id=%s",
-			GetAddr(), user_id_.c_str());
 }

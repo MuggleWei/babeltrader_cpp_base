@@ -3,7 +3,7 @@
 #include "demo_msg.h"
 #include "tcp_listen_handle.h"
 #include "tcp_server_handle.h"
-#include "tcp_server_peer.h"
+#include "tcp_server_session.h"
 #include <thread>
 
 typedef struct sys_args {
@@ -71,7 +71,7 @@ bool parse_sys_args(int argc, char **argv, sys_args_t *args)
 }
 
 #define REGISTER_CALLBACK(msg_id, funcname) \
-	dispatcher.RegisterCallback(msg_id, TcpServerPeer::s_##funcname);
+	dispatcher.RegisterCallback(msg_id, TcpServerSession::s_##funcname);
 void register_callbacks(Dispatcher &dispatcher)
 {
 	REGISTER_CALLBACK(DEMO_MSG_ID_PING, OnPing);

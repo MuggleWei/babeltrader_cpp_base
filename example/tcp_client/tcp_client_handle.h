@@ -3,7 +3,7 @@
 
 #include "muggle/cpp/muggle_cpp.h"
 #include "babeltrader/cpp/babeltrader_cpp.h"
-#include "tcp_client_peer.h"
+#include "tcp_client_session.h"
 
 USING_NS_MUGGLE;
 USING_NS_BABELTRADER;
@@ -30,7 +30,7 @@ private:
 	std::string host_;
 	std::string port_;
 
-	TcpClientPeer *session_;
+	TcpClientSession *session_;
 	time_t last_timer_trigger_;
 
 	NetEventLoop *evloop_;

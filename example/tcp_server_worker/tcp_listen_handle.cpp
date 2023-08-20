@@ -1,5 +1,5 @@
 #include "tcp_listen_handle.h"
-#include "tcp_server_peer.h"
+#include "tcp_server_session.h"
 
 TcpListenHandle::TcpListenHandle()
 	: worker_idx_(0)
@@ -29,7 +29,7 @@ void TcpListenHandle::OnConnect(NetEventLoop *evloop, SocketContext *ctx)
 
 	LOG_INFO("session connection: addr=%s", addr);
 
-	TcpServerPeer *session = new TcpServerPeer();
+	TcpServerSession *session = new TcpServerSession();
 
 	ctx->SetUserData(session);
 
@@ -57,7 +57,7 @@ void TcpListenHandle::OnClose(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 	if (session == nullptr) {
 		return;
 	}
@@ -95,7 +95,7 @@ void TcpListenHandle::OnRelease(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 
-	TcpServerPeer *session = (TcpServerPeer *)ctx->GetUserData();
+	TcpServerSession *session = (TcpServerSession *)ctx->GetUserData();
 	if (session) {
 		LOG_INFO("session release: addr=%s", session->GetAddr());
 		delete session;
