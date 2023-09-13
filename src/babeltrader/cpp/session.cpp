@@ -116,7 +116,7 @@ bool Session::OnRead(void *data, uint32_t datalen)
 
 bool Session::OnWrite(void *data, uint32_t datalen)
 {
-	int n = ctx_->Write(data, datalen);
+	int n = Write(data, datalen);
 	if (n != (int)datalen) {
 		if (n == MUGGLE_EVENT_ERROR) {
 			char errmsg[512];
@@ -132,6 +132,16 @@ bool Session::OnWrite(void *data, uint32_t datalen)
 		return false;
 	}
 	return true;
+}
+
+int Session::Write(void *data, uint32_t datalen)
+{
+	return ctx_->Write(data, datalen);
+}
+
+int Session::Read(void *buf, size_t len)
+{
+	return ctx_->Read(buf, (size_t)len);
 }
 
 NS_BABELTRADER_END

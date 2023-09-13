@@ -75,6 +75,28 @@ public:
 	BABELTRADER_CPP_EXPORT
 	virtual bool OnWrite(void *data, uint32_t datalen);
 
+	/**
+	 * @brief write into socket context
+	 *
+	 * @param data     data
+	 * @param datalen  length of data
+	 *
+	 * @return number of bytes write into socket
+	 */
+	BABELTRADER_CPP_EXPORT
+	virtual int Write(void *data, uint32_t datalen);
+
+	/**
+	 * @brief read from socket context
+	 *
+	 * @param buf  buffer store data
+	 * @param len  length of want read
+	 *
+	 * @return number of bytes read from socket
+	 */
+	BABELTRADER_CPP_EXPORT
+	virtual int Read(void *buf, size_t len);
+
 protected:
 	muggle::SocketContext *ctx_;
 	muggle::BytesBuffer *bytes_buf_;

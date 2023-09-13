@@ -62,7 +62,7 @@ TEST_F(TestCodec, CodecPing)
 		CheckHead((msg_hdr_t *)data, DEMO_MSG_ID_PING,
 				  datalen - sizeof(msg_hdr_t));
 
-		int n = write_session_.GetSocketContex()->Write(data, datalen);
+		int n = write_session_.Write(data, datalen);
 		ASSERT_EQ(n, datalen);
 	};
 
