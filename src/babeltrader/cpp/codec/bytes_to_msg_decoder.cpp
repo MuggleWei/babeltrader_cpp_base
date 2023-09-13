@@ -122,12 +122,6 @@ bool BytesToMsgDecoder::ReadBytes(Session *session)
 		return false;
 	}
 
-	muggle::SocketContext *ctx = session->GetSocketContex();
-	if (ctx == nullptr) {
-		LOG_ERROR("failed get socket context, addr=%s", session->GetAddr());
-		return false;
-	}
-
 	while (true) {
 		void *p = bytes_buf->WriterFc((int)recv_unit_size_);
 		if (p == nullptr) {
@@ -135,7 +129,7 @@ bool BytesToMsgDecoder::ReadBytes(Session *session)
 			break;
 		}
 
-		int n = ctx->Read(p, (size_t)recv_unit_size_);
+		int n = session->Read(p, (size_t)recv_unit_size_);
 		if (n > 0) {
 			bytes_buf->WriterMove(n);
 		}
